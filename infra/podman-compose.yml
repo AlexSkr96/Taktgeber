@@ -1,0 +1,72 @@
+
+name: taktgeber
+
+services:
+  hl-gateway:
+    build:
+      context: ../hl-gateway
+      dockerfile: Dockerfile
+    container_name: taktgeber-hl-gateway
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health').read()\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    container_name: taktgeber-redis
+    restart: unless-stopped
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - internal
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: taktgeber-postgres
+    restart: unless-stopped
+    env_file:
+      - ../.env.example
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+networks:
+  internal:
+    name: taktgeber-internal
+    driver: bridge
+    internal: true
+
+volumes:
+  postgres_data:
+    name: taktgeber-postgres-data

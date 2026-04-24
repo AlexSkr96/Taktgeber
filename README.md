@@ -216,6 +216,35 @@ make test
 
 ---
 
+## Launch (Current Scaffold)
+
+Use this flow to boot the project with the current repository scaffold.
+
+```bash
+# 1) Create local environment file
+cp .env.example .env
+
+# 2) Fill in credentials / settings (at least review POSTGRES_PASSWORD)
+$EDITOR .env
+
+# 3) Start the stack
+docker compose -f infra/podman-compose.yml up --build -d
+
+# 4) Confirm service health
+docker compose -f infra/podman-compose.yml ps
+curl http://127.0.0.1:8000/health
+
+# 5) Follow logs
+docker compose -f infra/podman-compose.yml logs -f hl-gateway
+
+# 6) Stop everything
+docker compose -f infra/podman-compose.yml down
+```
+
+`HL_GATEWAY_MOCK_TRADING=true` is enabled by default in `.env.example`, so the gateway can start without a live trading key during local development.
+
+---
+
 ## Development Phases
 
 | Phase | Scope |
