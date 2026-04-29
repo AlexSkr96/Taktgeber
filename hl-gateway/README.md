@@ -28,6 +28,6 @@ All settings use the `HL_GATEWAY_` env prefix (see root `.env.example`):
 From repo root:
 
 ```bash
-docker compose -f infra/podman-compose.yml up --build -d hl-gateway
+podman compose -f infra/podman-compose.yml up --build -d hl-gateway
 curl http://127.0.0.1:8000/health
 ```
