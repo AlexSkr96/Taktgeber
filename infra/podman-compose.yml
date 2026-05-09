@@ -30,6 +30,7 @@ services:
       start_period: 10s
     networks:
       - internal
+      - egress
 
   redis:
     image: redis:7-alpine
@@ -72,6 +73,9 @@ networks:
     name: taktgeber-internal
     driver: bridge
     internal: true
+  egress:
+    name: taktgeber-egress
+    driver: bridge
 
 volumes:
   postgres_data:
