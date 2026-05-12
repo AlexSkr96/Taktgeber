@@ -20,11 +20,18 @@ func main() {
 
 	fmt.Println("Connected to gateway!")
 
+	if err := client.Subscribe(ctx, gateway.SubDetail{Type: "allMids"}); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Subscribed!")
+
 	for {
-		data, err := client.Read(ctx)
+		data, err := client.ReadNDecode(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("Received:", string(data))
+		fmt.Println("Received:", data)
+		break
 	}
 }
