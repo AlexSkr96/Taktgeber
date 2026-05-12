@@ -34,6 +34,10 @@ type SubResponse struct {
 	Data    json.RawMessage `json:"data"`
 }
 
+type AllMids struct {
+	Mids map[string]string `json:"mids"`
+}
+
 func (c *Client) Connect(ctx context.Context) error {
 	conn, _, err := websocket.Dial(ctx, c.url, nil)
 	if err != nil {
@@ -67,6 +71,14 @@ func (c *Client) ReadNDecode(ctx context.Context) (*SubResponse, error) {
 		return nil, err
 	}
 	return DecodeResponse(data)
+}
+
+func DecodeAllMids(data []byte) (*AllMids, error) {
+	var allMids AllMids
+	if err := json.Unmarshal(data, &allMids); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal all mids: %w", err)
+	}
+	return &allMids, nil
 }
 
 func (c *Client) Subscribe(ctx context.Context, sub SubDetail) error {

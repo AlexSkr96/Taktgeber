@@ -31,7 +31,17 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("Received:", data)
-		break
+
+		if data.Channel == "allMids" {
+			fmt.Println("Channel:", data.Channel)
+			// fmt.Println("Data:", string(data.Data))
+			if allMids, err := gateway.DecodeAllMids(data.Data); err != nil {
+				log.Fatal(err)
+			} else {
+				fmt.Println("Data:", allMids)
+				fmt.Println("BTC:", allMids.Mids["BTC"])
+			}
+			break
+		}
 	}
 }
