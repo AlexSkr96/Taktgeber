@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/AlexSkr96/Taktgeber/algo-engine/internal/gateway"
+	"github.com/AlexSkr96/Taktgeber/algo-engine/internal/store"
 )
 
 func main() {
 	fmt.Println("Taktgeber engine starting...")
 
-	client := gateway.NewClient("ws://localhost:8000/ws")
+	// client := gateway.NewClient("ws://localhost:8000/ws")
+	client := gateway.NewClient("ws://hl-gateway:8000/ws")
 
 	ctx := context.Background()
 	if err := client.Connect(ctx); err != nil {
@@ -27,6 +29,16 @@ func main() {
 
 	fmt.Println("Subscribed!")
 
+	// Redis
+	store := store.NewStore("redis:6379")
+
+	if err := store.Ping(context.Background()); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Connected to Redis!")
+
+	// Channel processing
 	for {
 		data, err := client.ReadNDecode(ctx)
 		if err != nil {

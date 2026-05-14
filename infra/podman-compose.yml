@@ -18,8 +18,8 @@ services:
         condition: service_started
     expose:
       - "8000"
-    ports:
-      - "8000:8000"
+    # ports:
+    #   - "8000:8000"
     healthcheck:
       test:
         [
@@ -33,6 +33,26 @@ services:
     networks:
       - internal
       - egress
+  algo-trading:
+    build:
+      context: ../algo-engine
+      dockerfile: Dockerfile
+    container_name: taktgeber-algo-trading
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    depends_on:
+      hl-gateway:
+        # condition: service_healthy
+        condition: service_started
+      redis:
+        # condition: service_healthy
+        condition: service_started
+      postgres:
+        # condition: service_healthy
+        condition: service_started
+    networks:
+      - internal
 
   redis:
     image: redis:7-alpine
