@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/AlexSkr96/Taktgeber/algo-engine/internal/gateway"
 )
@@ -33,15 +34,16 @@ func main() {
 		}
 
 		if data.Channel == "allMids" {
-			fmt.Println("Channel:", data.Channel)
+			// fmt.Println("Channel:", data.Channel)
 			// fmt.Println("Data:", string(data.Data))
 			if allMids, err := gateway.DecodeAllMids(data.Data); err != nil {
 				log.Fatal(err)
 			} else {
-				fmt.Println("Data:", allMids)
-				fmt.Println("BTC:", allMids.Mids["BTC"])
+				// fmt.Println("Data:", allMids)
+				fmt.Println(time.Now().UTC(), "BTC:", allMids.Mids["BTC"])
+				fmt.Println(time.Now().UTC(), "ETH:", allMids.Mids["ETH"])
 			}
-			break
+			// break
 		}
 	}
 }
