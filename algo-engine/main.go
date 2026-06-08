@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/AlexSkr96/Taktgeber/algo-engine/internal/gateway"
@@ -40,20 +41,35 @@ func main() {
 
 	// Channel processing
 	for {
-		data, err := client.ReadNDecode(ctx)
+		msg, err := client.ReadNDecode(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if data.Channel == "allMids" {
-			// fmt.Println("Channel:", data.Channel)
-			// fmt.Println("Data:", string(data.Data))
-			if allMids, err := gateway.DecodeAllMids(data.Data); err != nil {
+		// fmt.Println("Raw Data:", msg)
+		// fmt.Println("Channel:", msg.Channel)
+		// fmt.Println("Data:", string(msg.Data))
+		if msg.Channel == "allMids" {
+			if allMids, err := gateway.DecodeAllMids(msg.Data); err != nil {
 				log.Fatal(err)
 			} else {
+				coins := []string{"BTC", "ETH", "XMR"}
 				// fmt.Println("Data:", allMids)
-				fmt.Println(time.Now().UTC(), "BTC:", allMids.Mids["BTC"])
-				fmt.Println(time.Now().UTC(), "ETH:", allMids.Mids["ETH"])
+				// fmt.Println(time.Now().UTC(), "BTC:", allMids.Mids["BTC"])
+				// fmt.Println(time.Now().UTC(), "ETH:", allMids.Mids["ETH"])
+				// fmt.Println(time.Now().UTC(), "XMR:", allMids.Mids["XMR"])
+
+				for _, coin := range coins {
+					timestamp := time.Now().UTC()
+					fmt.Println(timestamp, coin+":", allMids.Mids[coin])
+
+					price, err := strconv.ParseFloat(allMids.Mids[coin], 64)
+					if err != nil {
+						fmt.Println(fmt.Errorf("Error while parsing coin price: ", err))
+					}
+
+					store.AddPricePoint(ctx, coin, price, timestamp)
+				}
 			}
 			// break
 		}

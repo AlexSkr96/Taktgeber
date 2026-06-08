@@ -8,6 +8,8 @@ import (
 	"github.com/coder/websocket"
 )
 
+const wsReadLimitBytes = 1024 * 1024
+
 type Client struct {
 	url  string
 	conn *websocket.Conn
@@ -43,6 +45,7 @@ func (c *Client) Connect(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to connect to gateway: %w", err)
 	}
+	conn.SetReadLimit(wsReadLimitBytes)
 
 	c.conn = conn
 	return nil

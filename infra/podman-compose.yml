@@ -11,11 +11,11 @@ services:
       - ../.env
     depends_on:
       redis:
-        # condition: service_healthy
-        condition: service_started
+        condition: service_healthy
+        # condition: service_started
       postgres:
-        # condition: service_healthy
-        condition: service_started
+        condition: service_healthy
+        # condition: service_started
     expose:
       - "8000"
     # ports:
@@ -33,6 +33,7 @@ services:
     networks:
       - internal
       - egress
+
   algo-trading:
     build:
       context: ../algo-engine
@@ -53,6 +54,22 @@ services:
         condition: service_started
     networks:
       - internal
+
+  # tg-bot:
+  #   build:
+  #     context: ..
+  #     dockerfile: tg-bot/Dockerfile
+  #   container_name: taktgeber-tg-bot
+  #   restart: unless-stopped
+  #   env_file:
+  #     - ../.env
+  #   environment:
+  #     DB_PATH: /data/arbiter.db
+  #   volumes:
+  #     - tg_bot_data:/data
+  #   networks:
+  #     - internal
+  #     - egress
 
   redis:
     image: redis:7-alpine
@@ -92,9 +109,9 @@ services:
 
 networks:
   internal:
+    internal: false
     name: taktgeber-internal
     driver: bridge
-    internal: true
   egress:
     name: taktgeber-egress
     driver: bridge
@@ -102,3 +119,5 @@ networks:
 volumes:
   postgres_data:
     name: taktgeber-postgres-data
+  tg_bot_data:
+    name: taktgeber-tg-bot-data
