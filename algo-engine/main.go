@@ -40,6 +40,22 @@ func main() {
 	fmt.Println("Connected to Redis!")
 
 	// Channel processing
+	coins := []string{"BTC", "ETH", "XMR"}
+
+	go func() {
+		//Get prices for the past hour every ten seconds
+		for {
+			time.Sleep(30 * time.Second)
+			for _, coin := range coins {
+				pricePoints, err := store.GetRecentPrices(ctx, coin, 60*time.Hour)
+				if err != nil {
+					fmt.Println(fmt.Errorf("ERROR while getting prices from redis: %v", err))
+				}
+				fmt.Printf("Recent %v prices: %v\n", coin, pricePoints)
+			}
+		}
+	}()
+
 	for {
 		msg, err := client.ReadNDecode(ctx)
 		if err != nil {
@@ -53,7 +69,6 @@ func main() {
 			if allMids, err := gateway.DecodeAllMids(msg.Data); err != nil {
 				log.Fatal(err)
 			} else {
-				coins := []string{"BTC", "ETH", "XMR"}
 				// fmt.Println("Data:", allMids)
 				// fmt.Println(time.Now().UTC(), "BTC:", allMids.Mids["BTC"])
 				// fmt.Println(time.Now().UTC(), "ETH:", allMids.Mids["ETH"])
@@ -61,17 +76,23 @@ func main() {
 
 				for _, coin := range coins {
 					timestamp := time.Now().UTC()
-					fmt.Println(timestamp, coin+":", allMids.Mids[coin])
+					// fmt.Println(timestamp, coin+":", allMids.Mids[coin])
 
 					price, err := strconv.ParseFloat(allMids.Mids[coin], 64)
 					if err != nil {
-						fmt.Println(fmt.Errorf("Error while parsing coin price: ", err))
+						fmt.Println(fmt.Errorf("Error while parsing coin price: %v", err))
 					}
 
-					store.AddPricePoint(ctx, coin, price, timestamp)
+					err = store.AddPrice(ctx, coin, price, timestamp)
+					if err != nil {
+						fmt.Println(fmt.Errorf("Error while adding coin price: %v", err))
+					}
 				}
+
+				// fmt.Println("|------------------------------|")
 			}
 			// break
 		}
 	}
+
 }
