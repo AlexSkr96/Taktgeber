@@ -4,21 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 
-	"github.com/coder/websocket"
+	"github.com/gorilla/websocket"
 )
 
 const wsReadLimitBytes = 1024 * 1024
 
-type Client struct {
-	url  string
-	conn *websocket.Conn
-}
+const getAccountStateEndpoint = "/api/v1/account/state"
 
-func NewClient(url string) *Client {
-	return &Client{
-		url: url,
-	}
+type Client struct {
+	wsUrl   string
+	httpUrl string
+	conn    *websocket.Conn
+	http    *http.Client
 }
 
 type Subscription struct {
@@ -40,19 +40,38 @@ type AllMids struct {
 	Mids map[string]string `json:"mids"`
 }
 
+type AccountState struct {
+	RawAccountState string
+}
+
+func (c *Client) Close() error {
+	if c.conn != nil {
+		return c.conn.Close()
+	}
+	return nil
+}
+
+func NewClient(wsUrl string, httpUrl string) *Client {
+	return &Client{
+		wsUrl:   wsUrl,
+		httpUrl: httpUrl,
+		http:    &http.Client{},
+	}
+}
+
 func (c *Client) Connect(ctx context.Context) error {
-	conn, _, err := websocket.Dial(ctx, c.url, nil)
+	dialer := websocket.DefaultDialer
+	conn, _, err := dialer.DialContext(ctx, c.wsUrl, nil)
 	if err != nil {
 		return fmt.Errorf("failed to connect to gateway: %w", err)
 	}
 	conn.SetReadLimit(wsReadLimitBytes)
-
 	c.conn = conn
 	return nil
 }
 
 func (c *Client) Read(ctx context.Context) ([]byte, error) {
-	_, data, err := c.conn.Read(ctx)
+	_, data, err := c.conn.ReadMessage()
 	if err != nil {
 		return nil, fmt.Errorf("failed to read from gateway: %w", err)
 	}
@@ -95,9 +114,28 @@ func (c *Client) Subscribe(ctx context.Context, sub SubDetail) error {
 		return fmt.Errorf("failed to marshal subscription: %w", err)
 	}
 
-	if err := c.conn.Write(ctx, websocket.MessageText, data); err != nil {
+	if err := c.conn.WriteMessage(websocket.TextMessage, data); err != nil {
 		return fmt.Errorf("failed to send subscription: %w", err)
 	}
 
 	return nil
+}
+
+func (c *Client) GetAccountState(ctx context.Context) (AccountState, error) {
+	accountState := AccountState{}
+	url := fmt.Sprintf("%s%s", c.httpUrl, getAccountStateEndpoint)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return accountState, fmt.Errorf("ERROR while getting account state:\n%e", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return accountState, fmt.Errorf("ERROR while reading account state body:\n%e", err)
+	}
+
+	accountState.RawAccountState = string(body)
+	return accountState, nil
 }

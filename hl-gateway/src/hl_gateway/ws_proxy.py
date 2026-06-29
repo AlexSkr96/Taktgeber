@@ -39,17 +39,25 @@ class WebSocketProxy:
                     ping_timeout=20,
                     close_timeout=5,
                 ) as upstream_socket:
-                    self._logger.info("upstream_connected", url=self._settings.hyperliquid_ws_url)
+                    self._logger.info(
+                        "upstream_connected", url=self._settings.hyperliquid_ws_url
+                    )
                     await self._replay_subscriptions(upstream_socket, subscriptions)
                     backoff = self._settings.ws_reconnect_initial_seconds
 
-                    should_reconnect = await self._bridge(client_socket, upstream_socket, subscriptions)
+                    should_reconnect = await self._bridge(
+                        client_socket, upstream_socket, subscriptions
+                    )
                     if not should_reconnect:
                         return
             except ClientDisconnected:
                 return
             except Exception as exc:
-                self._logger.warning("upstream_connection_error", error=str(exc), retry_in_seconds=backoff)
+                self._logger.warning(
+                    "upstream_connection_error",
+                    error=str(exc),
+                    retry_in_seconds=backoff,
+                )
 
             await asyncio.sleep(backoff)
             backoff = min(backoff * 2, self._settings.ws_reconnect_max_seconds)
@@ -63,7 +71,9 @@ class WebSocketProxy:
         client_to_upstream = asyncio.create_task(
             self._pipe_client_to_upstream(client_socket, upstream_socket, subscriptions)
         )
-        upstream_to_client = asyncio.create_task(self._pipe_upstream_to_client(client_socket, upstream_socket))
+        upstream_to_client = asyncio.create_task(
+            self._pipe_upstream_to_client(client_socket, upstream_socket)
+        )
 
         done, pending = await asyncio.wait(
             {client_to_upstream, upstream_to_client},
@@ -102,8 +112,14 @@ class WebSocketProxy:
             raise ClientDisconnected from exc
         except ConnectionClosed as exc:
             raise UpstreamDisconnected from exc
+        except RuntimeError as exc:
+            # websockets>=12 raises RuntimeError when calling send() after
+            # the connection has received a close frame.
+            raise UpstreamDisconnected from exc
 
-    async def _pipe_upstream_to_client(self, client_socket: WebSocket, upstream_socket: Any) -> None:
+    async def _pipe_upstream_to_client(
+        self, client_socket: WebSocket, upstream_socket: Any
+    ) -> None:
         try:
             async for message in upstream_socket:
                 if isinstance(message, bytes):
@@ -115,11 +131,17 @@ class WebSocketProxy:
         except WebSocketDisconnect as exc:
             raise ClientDisconnected from exc
         except RuntimeError as exc:
-            raise ClientDisconnected from exc
+            # websockets>=12 raises RuntimeError("Cannot call 'receive' once a
+            # disconnect message has been received.") when the upstream has
+            # already received a close frame. Treat this as an upstream
+            # disconnection so the proxy reconnects instead of giving up.
+            raise UpstreamDisconnected from exc
 
         raise UpstreamDisconnected
 
-    async def _replay_subscriptions(self, upstream_socket: Any, subscriptions: dict[str, str]) -> None:
+    async def _replay_subscriptions(
+        self, upstream_socket: Any, subscriptions: dict[str, str]
+    ) -> None:
         if not subscriptions:
             return
         for message in subscriptions.values():
