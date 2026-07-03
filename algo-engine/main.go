@@ -70,18 +70,20 @@ func main() {
 	coins := []string{"BTC", "ETH", "XMR"}
 
 	//Get recent prices from Redis
-	go func() {
-		for {
-			time.Sleep(30 * time.Second)
-			for _, coin := range coins {
-				pricePoints, err := store.GetRecentPrices(ctx, coin, 60*time.Hour)
-				if err != nil {
-					logger.Println(fmt.Errorf("ERROR while getting prices from redis: %v", err))
-				}
-				logger.Printf("Recent %v prices: %v\n", coin, pricePoints)
-			}
-		}
-	}()
+	// go func() {
+	// 	for {
+	// 		time.Sleep(30 * time.Second)
+	// 		for _, coin := range coins {
+	// 			pricePoints, err := store.GetRecentPrices(ctx, coin, 60*time.Hour)
+	// 			if err != nil {
+	// 				logger.Println(fmt.Errorf("ERROR while getting prices from redis: %v", err))
+	// 				continue
+	// 			}
+
+	// 			logger.Printf("Recent %v prices: %v\n", coin, pricePoints)
+	// 		}
+	// 	}
+	// }()
 
 	//Get current prices from Hyperliquid and write them to Redis
 	go func() {
@@ -140,6 +142,22 @@ func main() {
 					}
 				}
 			}
+		}
+	}()
+
+	//Get account data
+	go func() {
+		for {
+			logger.Printf("Attempting to get account state\n")
+
+			accountState, err := client.GetAccountState(ctx)
+			if err != nil {
+				logger.Println(fmt.Errorf("Error while getting account state: %v", err))
+				continue
+			}
+
+			logger.Printf("Account state: %+v\n", accountState)
+			time.Sleep(15 * time.Second)
 		}
 	}()
 

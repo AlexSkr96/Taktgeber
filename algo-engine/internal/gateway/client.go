@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 )
+
+var logger = log.Default()
 
 const wsReadLimitBytes = 1024 * 1024
 
@@ -40,8 +43,22 @@ type AllMids struct {
 	Mids map[string]string `json:"mids"`
 }
 
+//Account state structs
+
 type AccountState struct {
-	RawAccountState string
+	Status string             `json:"status"`
+	Result AccountStateResult `json:"result"`
+}
+
+type AccountStateResult struct {
+	AccountAddress string                `json:"account_address"`
+	UserState      AccountStateUserState `json:"user_state"`
+	OpenOrders     any                   `json:"open_orders"` // updated to slice
+}
+
+type AccountStateUserState struct {
+	MarginSummary  json.RawMessage `json:"marginSummary"`  // can be object
+	AssetPositions any             `json:"assetPositions"` // can be array
 }
 
 func (c *Client) Close() error {
@@ -125,17 +142,20 @@ func (c *Client) GetAccountState(ctx context.Context) (AccountState, error) {
 	accountState := AccountState{}
 	url := fmt.Sprintf("%s%s", c.httpUrl, getAccountStateEndpoint)
 
-	resp, err := http.Get(url)
+	resp, err := c.http.Get(url)
 	if err != nil {
-		return accountState, fmt.Errorf("ERROR while getting account state:\n%e", err)
+		return accountState, fmt.Errorf("error while getting account state: %w", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return accountState, fmt.Errorf("ERROR while reading account state body:\n%e", err)
+		return accountState, fmt.Errorf("error while reading account state body: %w", err)
 	}
 
-	accountState.RawAccountState = string(body)
+	if err = json.Unmarshal(body, &accountState); err != nil {
+		return accountState, fmt.Errorf("error while unmarshalling account state: %w", err)
+	}
+
 	return accountState, nil
 }
