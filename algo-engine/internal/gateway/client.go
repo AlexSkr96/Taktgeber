@@ -51,14 +51,25 @@ type AccountState struct {
 }
 
 type AccountStateResult struct {
-	AccountAddress string                `json:"account_address"`
-	UserState      AccountStateUserState `json:"user_state"`
-	OpenOrders     any                   `json:"open_orders"` // updated to slice
+	AccountAddress string    `json:"account_address"`
+	UserState      UserState `json:"user_state"`
+	OpenOrders     any       `json:"open_orders"` // updat to slice
 }
 
-type AccountStateUserState struct {
-	MarginSummary  json.RawMessage `json:"marginSummary"`  // can be object
-	AssetPositions any             `json:"assetPositions"` // can be array
+type UserState struct {
+	MarginSummary              MarginSummary `json:"marginSummary"`
+	CrossMarginSummary         MarginSummary `json:"crossMarginSummary"`
+	CrossMaintenanceMarginUsed json.Number   `json:"crossMaintenanceMarginUsed"`
+	Withdrawable               json.Number   `json:"withdrawable"`
+	AssetPositions             any           `json:"assetPositions"`
+	Time                       int64         `json:"time"`
+}
+
+type MarginSummary struct {
+	AccountValue    json.Number `json:"accountValue"`
+	TotalNtlPos     json.Number `json:"totalNtlPos"`
+	TotalRawUsd     json.Number `json:"totalRawUsd"`
+	TotalMarginUsed json.Number `json:"totalMarginUsed"`
 }
 
 func (c *Client) Close() error {
@@ -152,6 +163,8 @@ func (c *Client) GetAccountState(ctx context.Context) (AccountState, error) {
 	if err != nil {
 		return accountState, fmt.Errorf("error while reading account state body: %w", err)
 	}
+
+	// logger.Printf("Account state body: %v\n", string(body))
 
 	if err = json.Unmarshal(body, &accountState); err != nil {
 		return accountState, fmt.Errorf("error while unmarshalling account state: %w", err)

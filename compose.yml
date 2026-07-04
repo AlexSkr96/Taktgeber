@@ -70,7 +70,7 @@ services:
       - internal
       - egress
 
-  algo-trading:
+  algo-engine:
     build:
       context: algo-engine
       dockerfile: Dockerfile
