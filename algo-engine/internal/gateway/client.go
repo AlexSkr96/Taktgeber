@@ -57,12 +57,12 @@ type AccountStateResult struct {
 }
 
 type UserState struct {
-	MarginSummary              MarginSummary `json:"marginSummary"`
-	CrossMarginSummary         MarginSummary `json:"crossMarginSummary"`
-	CrossMaintenanceMarginUsed json.Number   `json:"crossMaintenanceMarginUsed"`
-	Withdrawable               json.Number   `json:"withdrawable"`
-	AssetPositions             any           `json:"assetPositions"`
-	Time                       int64         `json:"time"`
+	MarginSummary              MarginSummary   `json:"marginSummary"`
+	CrossMarginSummary         MarginSummary   `json:"crossMarginSummary"`
+	CrossMaintenanceMarginUsed json.Number     `json:"crossMaintenanceMarginUsed"`
+	Withdrawable               json.Number     `json:"withdrawable"`
+	AssetPositions             []AssetPosition `json:"assetPositions"`
+	Time                       int64           `json:"time"`
 }
 
 type MarginSummary struct {
@@ -70,6 +70,23 @@ type MarginSummary struct {
 	TotalNtlPos     json.Number `json:"totalNtlPos"`
 	TotalRawUsd     json.Number `json:"totalRawUsd"`
 	TotalMarginUsed json.Number `json:"totalMarginUsed"`
+}
+
+type AssetPosition struct {
+	Type     string   `json:"type"`
+	Position Position `json:"position"`
+}
+
+type Position struct {
+	Coin           string      `json:"coin"`
+	EntryPx        json.Number `json:"entryPx"`
+	Szi            json.Number `json:"szi"`
+	PositionValue  json.Number `json:"positionValue"`
+	UnrealizedPnl  json.Number `json:"unrealizedPnl"`
+	ReturnOnEquity json.Number `json:"returnOnEquity"`
+	MarginUsed     json.Number `json:"marginUsed"`
+	LiquidationPx  json.Number `json:"liquidationPx"`
+	MaxLeverage    json.Number `json:"maxLeverage"`
 }
 
 func (c *Client) Close() error {
