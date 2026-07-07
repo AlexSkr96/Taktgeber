@@ -157,7 +157,7 @@ func main() {
 			}
 
 			logger.Printf("Account state: %+v\n", accountState)
-			time.Sleep(15 * time.Second)
+			time.Sleep(30 * time.Second)
 		}
 	}()
 

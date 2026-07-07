@@ -24,71 +24,6 @@ type Client struct {
 	http    *http.Client
 }
 
-type Subscription struct {
-	Method       string    `json:"method"`
-	Subscription SubDetail `json:"subscription"`
-}
-
-type SubDetail struct {
-	Type string `json:"type"`
-	Coin string `json:"coin,omitempty"`
-}
-
-type SubResponse struct {
-	Channel string          `json:"channel"`
-	Data    json.RawMessage `json:"data"`
-}
-
-type AllMids struct {
-	Mids map[string]string `json:"mids"`
-}
-
-//Account state structs
-
-type AccountState struct {
-	Status string             `json:"status"`
-	Result AccountStateResult `json:"result"`
-}
-
-type AccountStateResult struct {
-	AccountAddress string    `json:"account_address"`
-	UserState      UserState `json:"user_state"`
-	OpenOrders     any       `json:"open_orders"` // updat to slice
-}
-
-type UserState struct {
-	MarginSummary              MarginSummary   `json:"marginSummary"`
-	CrossMarginSummary         MarginSummary   `json:"crossMarginSummary"`
-	CrossMaintenanceMarginUsed json.Number     `json:"crossMaintenanceMarginUsed"`
-	Withdrawable               json.Number     `json:"withdrawable"`
-	AssetPositions             []AssetPosition `json:"assetPositions"`
-	Time                       int64           `json:"time"`
-}
-
-type MarginSummary struct {
-	AccountValue    json.Number `json:"accountValue"`
-	TotalNtlPos     json.Number `json:"totalNtlPos"`
-	TotalRawUsd     json.Number `json:"totalRawUsd"`
-	TotalMarginUsed json.Number `json:"totalMarginUsed"`
-}
-
-type AssetPosition struct {
-	Type     string   `json:"type"`
-	Position Position `json:"position"`
-}
-
-type Position struct {
-	Coin           string      `json:"coin"`
-	EntryPx        json.Number `json:"entryPx"`
-	Szi            json.Number `json:"szi"`
-	PositionValue  json.Number `json:"positionValue"`
-	UnrealizedPnl  json.Number `json:"unrealizedPnl"`
-	ReturnOnEquity json.Number `json:"returnOnEquity"`
-	MarginUsed     json.Number `json:"marginUsed"`
-	LiquidationPx  json.Number `json:"liquidationPx"`
-	MaxLeverage    json.Number `json:"maxLeverage"`
-}
-
 func (c *Client) Close() error {
 	if c.conn != nil {
 		return c.conn.Close()
@@ -181,7 +116,7 @@ func (c *Client) GetAccountState(ctx context.Context) (AccountState, error) {
 		return accountState, fmt.Errorf("error while reading account state body: %w", err)
 	}
 
-	// logger.Printf("Account state body: %v\n", string(body))
+	logger.Printf("Account state body: %v\n", string(body))
 
 	if err = json.Unmarshal(body, &accountState); err != nil {
 		return accountState, fmt.Errorf("error while unmarshalling account state: %w", err)
