@@ -8,14 +8,11 @@ import (
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
-	"github.com/joho/godotenv"
 )
 
 // Send any text message to the bot after the bot has been started
 
 func main() {
-	// Don't delete this line, so env vars are loaded
-	godotenv.Load(".env")
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
