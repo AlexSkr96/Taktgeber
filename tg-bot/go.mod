@@ -1,8 +1,9 @@
-module github.com/AlexSkr96/Arbiter
+module codeberg.org/a2100/Taktgeber/tg-bot
 
-go 1.24.13
+go 1.26.2
 
 require (
 	github.com/go-telegram/bot v1.20.0
-	github.com/joho/godotenv v1.5.1
 )
+
+require github.com/gorilla/websocket v1.5.3 // indirect

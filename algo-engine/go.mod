@@ -1,4 +1,4 @@
-module github.com/AlexSkr96/Taktgeber/algo-engine
+module codeberg.org/a2100/Taktgeber/algo-engine
 
 go 1.26.2
 
