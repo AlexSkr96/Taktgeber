@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 
+	"codeberg.org/a2100/Taktgeber/algo-engine/types"
 	"github.com/gorilla/websocket"
 )
 
@@ -101,8 +102,8 @@ func (c *Client) Subscribe(ctx context.Context, sub SubDetail) error {
 	return nil
 }
 
-func (c *Client) GetAccountState(ctx context.Context) (AccountState, error) {
-	accountState := AccountState{}
+func (c *Client) GetAccountState(ctx context.Context) (types.AccountState, error) {
+	accountState := types.AccountState{}
 	url := fmt.Sprintf("%s%s", c.httpUrl, getAccountStateEndpoint)
 
 	resp, err := c.http.Get(url)

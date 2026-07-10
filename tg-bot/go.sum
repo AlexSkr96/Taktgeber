@@ -1,4 +1,6 @@
+codeberg.org/a2100/Taktgeber/algo-engine v0.0.0-20260710130218-09a2c94c256c h1:Hp5QG3LVqA5kKUSKbNz3PaTVNMkX8o9IlJ2gUOnI/Sg=
+codeberg.org/a2100/Taktgeber/algo-engine v0.0.0-20260710130218-09a2c94c256c/go.mod h1:SHqDrCeC+kk6ocYEE+KCWl/9oAwq3yrO6+XMCQFX0sI=
 github.com/go-telegram/bot v1.20.0 h1:4Pea/qTidSspr4WBJw9FbHUMNhYeqszBqQUfsQEyFbc=
 github.com/go-telegram/bot v1.20.0/go.mod h1:i2TRs7fXWIeaceF3z7KzsMt/he0TwkVC680mvdTFYeM=
-github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
-github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
+github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
+github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=

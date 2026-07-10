@@ -2,18 +2,24 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+
+	"codeberg.org/a2100/Taktgeber/algo-engine/types"
+	"codeberg.org/a2100/Taktgeber/tg-bot/formatting"
 )
 
-// Send any text message to the bot after the bot has been started
+const algoEngineURL = "http://algo-engine:9000"
+const healthURL = algoEngineURL + "/health"
+const accountURL = algoEngineURL + "/account"
 
 func main() {
-
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
@@ -34,26 +40,54 @@ func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	if isCommand(update.Message.Text, "get-price") {
+	switch update.Message.Text {
+	case "/health":
+		healthHandler(ctx, b, update)
+	case "/account":
+		accountHandler(ctx, b, update)
+	}
+}
+
+func healthHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	resp, err := http.Get(healthURL)
+	if err != nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "/get-price is not implemented yet.",
+			Text:   fmt.Sprintf("Failed to connect: %v", err),
 		})
 		return
 	}
+	defer resp.Body.Close()
+
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   update.Message.Text,
+		Text:   fmt.Sprintf("Algo-engine status: %s", resp.Status),
 	})
 }
 
-func isCommand(text string, command string) bool {
-	fields := strings.Fields(text)
-	if len(fields) == 0 {
-		return false
+func accountHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	accountState := types.AccountState{}
+
+	resp, err := http.Get(accountURL)
+	if err != nil {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   fmt.Sprintf("Filed to get account data: %v", err),
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	if err = json.NewDecoder(resp.Body).Decode(&accountState); err != nil {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   fmt.Sprintf("Failed to decode account data: %v", err),
+		})
 	}
 
-	cmd := strings.TrimPrefix(fields[0], "/")
-	cmd = strings.SplitN(cmd, "@", 2)[0]
-	return cmd == command
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
+		Text:      formatting.FormatAccountState(accountState),
+		ParseMode: models.ParseModeHTML,
+	})
 }
