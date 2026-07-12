@@ -8,6 +8,8 @@ import (
 )
 
 func FormatAccountState(state types.AccountState) string {
+	fmt.Printf("AccountState for formatting: %+v\n", state)
+
 	var b strings.Builder
 
 	ms := state.Result.UserState.MarginSummary
@@ -58,7 +60,15 @@ func FormatAccountState(state types.AccountState) string {
 		for _, o := range orders {
 			px, _ := o.LimitPx.Float64()
 			sz, _ := o.Sz.Float64()
-			b.WriteString(fmt.Sprintf("%s %s %.4f @ %.2f\n", o.Coin, o.Side, sz, px))
+
+			side := "BUY"
+			emoji := "🟢"
+			if o.Side == "A" {
+				side = "SELL"
+				emoji = "🔴"
+			}
+
+			b.WriteString(fmt.Sprintf("%s %s %s %.4f @ %.2f\n", emoji, o.Coin, side, sz, px))
 		}
 	}
 
