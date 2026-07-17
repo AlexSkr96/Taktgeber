@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"codeberg.org/a2100/Taktgeber/algo-engine/types"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -43,13 +44,8 @@ func (s *Store) AddPrice(ctx context.Context, coin string, price float64, timest
 	return nil
 }
 
-type PricePoint struct {
-	UnixTimestamp float64
-	Price         float64
-}
-
-func (s *Store) GetRecentPrices(ctx context.Context, coin string, since time.Duration) ([]PricePoint, error) {
-	pricePoints := []PricePoint{}
+func (s *Store) GetRecentPrices(ctx context.Context, coin string, since time.Duration) ([]types.PricePoint, error) {
+	pricePoints := []types.PricePoint{}
 	key := newKey(pricesKey, coin)
 	minScore := time.Now().Add(-since).UnixMilli()
 
@@ -74,7 +70,7 @@ func (s *Store) GetRecentPrices(ctx context.Context, coin string, since time.Dur
 			return nil, fmt.Errorf("Couldn't parse string \"%v\" to float64:\n%v", sPrice, err)
 		}
 		pricePoints = append(pricePoints,
-			PricePoint{
+			types.PricePoint{
 				UnixTimestamp: subResult.Score,
 				Price:         price,
 			},

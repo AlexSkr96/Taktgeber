@@ -6,13 +6,17 @@ import (
 	"net/http"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"codeberg.org/a2100/Taktgeber/algo-engine/internal/gateway"
+	"codeberg.org/a2100/Taktgeber/algo-engine/internal/store"
+	"codeberg.org/a2100/Taktgeber/algo-engine/types"
 )
 
 // apiConfig holds shared dependencies that HTTP handlers need access to.
 type apiConfig struct {
 	gatewayClient *gateway.Client
+	store         store.Store
 }
 
 // Package variables
@@ -36,19 +40,34 @@ func main() {
 	// --- API server setup ---
 	apiCfg := &apiConfig{
 		gatewayClient: client,
+		store:         *store.NewStore("redis:6379"),
+	}
+
+	if err := apiCfg.store.Ping(ctx); err != nil {
+		log.Fatal(err)
+	}
+
+	// Connect with retry
+	if err := client.Connect(ctx); err != nil {
+		log.Fatalf("failed to connect: %v", err)
+	}
+
+	// Subscribe
+	if err := client.Subscribe(ctx, types.SubDetail{Type: "allMids"}); err != nil {
+		log.Fatalf("failed to subscribe: %v", err)
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", apiCfg.handlerHealth)
 	mux.HandleFunc("GET /account", apiCfg.handlerAccount)
+	mux.HandleFunc("GET /price", apiCfg.handlerPrice)
 
 	srv := &http.Server{
 		Addr:    ":9000",
 		Handler: mux,
 	}
 
-	// Run the HTTP server in the background so it doesn't block
-	// the WebSocket loop below.
+	// Run the HTTP server in the background
 	go func() {
 		log.Println("API server listening on :9000")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -56,9 +75,12 @@ func main() {
 		}
 	}()
 
-	// --- Your existing WebSocket / engine loop continues here ---
-	// e.g. client.Connect(ctx), subscriptions, Redis writes, etc.
+	// Stream prices to Redis (handles reconnection internally)
+	coins := []string{"BTC", "ETH", "XMR"}
+	go client.StreamPrices(ctx, &apiCfg.store, coins)
 
 	<-ctx.Done()
 	log.Println("shutting down")
+	client.Close()
+	time.Sleep(100 * time.Millisecond)
 }

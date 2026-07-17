@@ -2,8 +2,6 @@ package types
 
 import "encoding/json"
 
-// Account state types
-
 type AccountState struct {
 	Status string             `json:"status"`
 	Result AccountStateResult `json:"result"`

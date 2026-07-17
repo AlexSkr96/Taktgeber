@@ -1,8 +1,8 @@
-package gateway
+package types
 
 import "encoding/json"
 
-// WebSocket types
+// Structs for coin info
 
 type Subscription struct {
 	Method       string    `json:"method"`

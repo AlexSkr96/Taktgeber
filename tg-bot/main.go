@@ -1,93 +1,66 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
+	"log"
 	"os"
-	"os/signal"
 
-	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
-
-	"codeberg.org/a2100/Taktgeber/algo-engine/types"
-	"codeberg.org/a2100/Taktgeber/tg-bot/formatting"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const algoEngineURL = "http://algo-engine:9000"
-const healthURL = algoEngineURL + "/health"
-const accountURL = algoEngineURL + "/account"
+const (
+	algoEngineURL = "http://algo-engine:9000"
+	healthURL     = algoEngineURL + "/health"
+	accountURL    = algoEngineURL + "/account"
+	priceURL      = algoEngineURL + "/price"
+)
 
 func main() {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer cancel()
-
-	opts := []bot.Option{
-		bot.WithDefaultHandler(handler),
-	}
-
-	b, err := bot.New(os.Getenv("BOT_KEY"), opts...)
+	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
-	b.Start(ctx)
-}
+	bot.Debug = true
 
-func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.Message == nil {
-		return
+	log.Printf("Authorized on account %s", bot.Self.UserName)
+
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+
+	updates := bot.GetUpdatesChan(u)
+
+	for update := range updates {
+		if update.Message == nil { // ignore any non-Message updates
+			continue
+		}
+
+		if !update.Message.IsCommand() { // ignore any non-command Messages
+			continue
+		}
+
+		// Create a new MessageConfig. We don't have text yet,
+		// so we leave it empty.
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+
+		// Extract the command from the Message.
+		switch update.Message.Command() {
+		case "health":
+			msg.Text, err = commandHealth()
+		case "account":
+			msg.Text, err = commandAccount()
+		case "price":
+			msg.Text, err = commandPrice()
+		default:
+			msg.Text = "I don't know that command"
+		}
+
+		if err != nil {
+			msg.Text = fmt.Sprint("Failed to execute command: %v", err)
+		}
+
+		if _, err := bot.Send(msg); err != nil {
+			log.Printf("Failed to send message: %v\nMesasge content: %v\n", err, msg.Text)
+		}
 	}
-
-	switch update.Message.Text {
-	case "/health":
-		healthHandler(ctx, b, update)
-	case "/account":
-		accountHandler(ctx, b, update)
-	}
-}
-
-func healthHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	resp, err := http.Get(healthURL)
-	if err != nil {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   fmt.Sprintf("Failed to connect: %v", err),
-		})
-		return
-	}
-	defer resp.Body.Close()
-
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   fmt.Sprintf("Algo-engine status: %s", resp.Status),
-	})
-}
-
-func accountHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	accountState := types.AccountState{}
-
-	resp, err := http.Get(accountURL)
-	if err != nil {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   fmt.Sprintf("Filed to get account data: %v", err),
-		})
-		return
-	}
-	defer resp.Body.Close()
-
-	if err = json.NewDecoder(resp.Body).Decode(&accountState); err != nil {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   fmt.Sprintf("Failed to decode account data: %v", err),
-		})
-	}
-
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:    update.Message.Chat.ID,
-		Text:      formatting.FormatAccountState(accountState),
-		ParseMode: models.ParseModeHTML,
-	})
 }

@@ -12,6 +12,7 @@ import (
 
 	"codeberg.org/a2100/Taktgeber/algo-engine/internal/gateway"
 	"codeberg.org/a2100/Taktgeber/algo-engine/internal/store"
+	"codeberg.org/a2100/Taktgeber/algo-engine/types"
 )
 
 func main_old() {
@@ -46,7 +47,7 @@ func main_old() {
 	// Subscribe with retry
 	delay = reconnectBaseDelay
 	for {
-		if err := client.Subscribe(ctx, gateway.SubDetail{Type: "allMids"}); err != nil {
+		if err := client.Subscribe(ctx, types.SubDetail{Type: "allMids"}); err != nil {
 			logger.Printf("failed to subscribe: %v, retrying in %v...", err, delay)
 			time.Sleep(delay)
 			delay = min(delay*2, reconnectMaxDelay)
@@ -70,20 +71,20 @@ func main_old() {
 	coins := []string{"BTC", "ETH", "XMR"}
 
 	//Get recent prices from Redis
-	// go func() {
-	// 	for {
-	// 		time.Sleep(30 * time.Second)
-	// 		for _, coin := range coins {
-	// 			pricePoints, err := store.GetRecentPrices(ctx, coin, 60*time.Hour)
-	// 			if err != nil {
-	// 				logger.Println(fmt.Errorf("ERROR while getting prices from redis: %v", err))
-	// 				continue
-	// 			}
+	go func() {
+		for {
+			time.Sleep(30 * time.Second)
+			for _, coin := range coins {
+				pricePoints, err := store.GetRecentPrices(ctx, coin, 60*time.Hour)
+				if err != nil {
+					logger.Println(fmt.Errorf("ERROR while getting prices from redis: %v", err))
+					continue
+				}
 
-	// 			logger.Printf("Recent %v prices: %v\n", coin, pricePoints)
-	// 		}
-	// 	}
-	// }()
+				logger.Printf("Recent %v prices: %v\n", coin, pricePoints)
+			}
+		}
+	}()
 
 	//Get current prices from Hyperliquid and write them to Redis
 	go func() {
@@ -102,7 +103,7 @@ func main_old() {
 						delay = min(delay*2, reconnectMaxDelay)
 						continue
 					}
-					if err := client.Subscribe(ctx, gateway.SubDetail{Type: "allMids"}); err != nil {
+					if err := client.Subscribe(ctx, types.SubDetail{Type: "allMids"}); err != nil {
 						logger.Printf("re-subscribe failed: %v", err)
 						client.Close()
 						delay = min(delay*2, reconnectMaxDelay)
