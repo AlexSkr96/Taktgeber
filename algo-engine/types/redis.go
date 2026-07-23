@@ -1,6 +1,6 @@
 package types
 
 type PricePoint struct {
-	UnixTimestamp float64
+	UnixTimestamp int64
 	Price         float64
 }
