@@ -2,7 +2,7 @@ name: taktgeber
 
 services:
   redis:
-    image: redis:7-alpine
+    image: docker.io/library/redis:7-alpine
     container_name: taktgeber-redis
     restart: unless-stopped
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
@@ -19,7 +19,7 @@ services:
       - internal
 
   postgres:
-    image: postgres:16-alpine
+    image: docker.io/library/postgres:16-alpine
     container_name: taktgeber-postgres
     restart: unless-stopped
     env_file:
@@ -74,7 +74,7 @@ services:
     build:
       context: algo-engine
       dockerfile: Dockerfile
-    container_name: taktgeber-algo-trading
+    container_name: taktgeber-algo-engine
     restart: unless-stopped
     env_file:
       - .env

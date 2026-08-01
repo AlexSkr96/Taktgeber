@@ -16,9 +16,9 @@ const (
 )
 
 func main() {
-	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
+	bot, err := tgbotapi.NewBotAPI(os.Getenv("BOT_KEY"))
 	if err != nil {
-		log.Panic(err)
+		log.Panicf("Failed to connect to TG bot API: %v\n", err)
 	}
 
 	bot.Debug = true
@@ -50,13 +50,13 @@ func main() {
 		case "account":
 			msg.Text, err = commandAccount()
 		case "price":
-			msg.Text, err = commandPrice()
+			msg.Text, err = commandPrice("BTC", "1970-01-01 00:00:00", "50")
 		default:
 			msg.Text = "I don't know that command"
 		}
 
 		if err != nil {
-			msg.Text = fmt.Sprint("Failed to execute command: %v", err)
+			msg.Text = fmt.Sprintf("Failed to execute command: %v", err)
 		}
 
 		if _, err := bot.Send(msg); err != nil {

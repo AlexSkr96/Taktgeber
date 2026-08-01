@@ -1,14 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
 	"codeberg.org/a2100/Taktgeber/algo-engine/types"
+	"codeberg.org/a2100/Taktgeber/tg-bot/formatting"
 )
 
-func commandPrice(coin, since, limit string) ([]types.PricePoint, error) {
+func commandPrice(coin, since, limit string) (string, error) {
 	pricePoints := []types.PricePoint{}
 
 	thisPriceURL := priceURL
@@ -35,7 +38,10 @@ func commandPrice(coin, since, limit string) ([]types.PricePoint, error) {
 	}
 	defer resp.Body.Close()
 
-	// if err = json.NewDecoder(resp.Body).Decode()
+	log.Printf("commandPrice; resp.Body: %v\n", resp.Body)
+	if err = json.NewDecoder(resp.Body).Decode(&pricePoints); err != nil {
+		return "", fmt.Errorf("Failed to decode prices: %v", err)
+	}
 
-	return "Not yet implemented", err
+	return formatting.FormatPrices(pricePoints), nil
 }
