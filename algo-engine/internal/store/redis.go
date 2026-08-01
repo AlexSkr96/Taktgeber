@@ -71,7 +71,7 @@ func (s *Store) GetRecentPrices(ctx context.Context, coin string, since time.Dur
 		}
 		pricePoints = append(pricePoints,
 			types.PricePoint{
-				UnixTimestamp: subResult.Score,
+				UnixTimestamp: int64(subResult.Score),
 				Price:         price,
 			},
 		)

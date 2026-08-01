@@ -26,16 +26,11 @@ var client = gateway.NewClient(
 	"http://hl-gateway:8000",
 )
 var ctx = context.Background()
+var port = ":9000"
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
-
-	// --- Existing gateway client setup ---
-	client := gateway.NewClient(
-		"ws://hl-gateway:8000/ws",
-		"http://hl-gateway:8000",
-	)
 
 	// --- API server setup ---
 	apiCfg := &apiConfig{
@@ -63,13 +58,13 @@ func main() {
 	mux.HandleFunc("GET /price", apiCfg.handlerPrice)
 
 	srv := &http.Server{
-		Addr:    ":9000",
+		Addr:    port,
 		Handler: mux,
 	}
 
 	// Run the HTTP server in the background
 	go func() {
-		log.Println("API server listening on :9000")
+		log.Printf("API server listening on %v\n", port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal(err)
 		}
