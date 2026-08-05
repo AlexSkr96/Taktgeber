@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"codeberg.org/a2100/Taktgeber/algo-engine/types"
-	"codeberg.org/a2100/Taktgeber/tg-bot/formatting"
+	"github.com/AlexSkr96/Taktgeber/algo-engine/types"
+	"github.com/AlexSkr96/Taktgeber/tg-bot/formatting"
 )
 
 func commandAccount() (string, error) {

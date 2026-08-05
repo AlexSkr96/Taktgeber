@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"codeberg.org/a2100/Taktgeber/algo-engine/types"
+	"github.com/AlexSkr96/Taktgeber/algo-engine/types"
 )
 
 func FormatAccountState(state types.AccountState) string {

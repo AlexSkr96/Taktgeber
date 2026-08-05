@@ -1,4 +1,2 @@
-codeberg.org/a2100/Taktgeber/algo-engine v0.0.0-20260801061842-202ea6be159c h1:Ji1u7pZb91mjHVAKuwZNZNczEFg64bt5oDvY/KL7xGc=
-codeberg.org/a2100/Taktgeber/algo-engine v0.0.0-20260801061842-202ea6be159c/go.mod h1:SHqDrCeC+kk6ocYEE+KCWl/9oAwq3yrO6+XMCQFX0sI=
 github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1 h1:wG8n/XJQ07TmjbITcGiUaOtXxdrINDz1b0J1w0SzqDc=
 github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1/go.mod h1:A2S0CWkNylc2phvKXWBBdD3K0iGnDBGbzRpISP2zBl8=

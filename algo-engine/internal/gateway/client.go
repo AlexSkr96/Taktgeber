@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	"codeberg.org/a2100/Taktgeber/algo-engine/types"
+	"github.com/AlexSkr96/Taktgeber/algo-engine/types"
 	"github.com/gorilla/websocket"
 )
 

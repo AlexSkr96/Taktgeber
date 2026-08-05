@@ -8,9 +8,9 @@ import (
 	"syscall"
 	"time"
 
-	"codeberg.org/a2100/Taktgeber/algo-engine/internal/gateway"
-	"codeberg.org/a2100/Taktgeber/algo-engine/internal/store"
-	"codeberg.org/a2100/Taktgeber/algo-engine/types"
+	"github.com/AlexSkr96/Taktgeber/algo-engine/internal/gateway"
+	"github.com/AlexSkr96/Taktgeber/algo-engine/internal/store"
+	"github.com/AlexSkr96/Taktgeber/algo-engine/types"
 )
 
 // apiConfig holds shared dependencies that HTTP handlers need access to.
