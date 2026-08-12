@@ -3,14 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 )
 
 func (cfg *apiConfig) handlerPrice(w http.ResponseWriter, r *http.Request) {
-	log.Println("Starting handlerPrice")
 	coin := r.URL.Query().Get("coin")
 	if coin == "" {
 		http.Error(w, "missing 'coin' query parameter", http.StatusBadRequest)
@@ -51,6 +49,5 @@ func (cfg *apiConfig) handlerPrice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	log.Printf("Encoding prices from handlerPrice: %v\n", prices)
 	json.NewEncoder(w).Encode(prices)
 }

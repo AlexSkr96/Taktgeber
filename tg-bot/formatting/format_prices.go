@@ -15,8 +15,9 @@ func FormatPrices(pricePoints []types.PricePoint) string {
 	var b strings.Builder
 
 	for _, pricePoint := range pricePoints {
-		displayTime := time.Unix(pricePoint.UnixTimestamp, 0).Format("01.02 15:04:05")
-		b.WriteString(fmt.Sprintf("%v: $%v", displayTime, pricePoint.Price))
+		displayTime := time.UnixMilli(pricePoint.UnixTimestamp).Format("02.01 15:04:05 '06")
+		// displayTime := pricePoint.UnixTimestamp
+		fmt.Fprintf(&b, "%v: $%v\n", displayTime, pricePoint.Price)
 	}
 
 	return b.String()

@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"encoding/json"
@@ -9,7 +9,13 @@ import (
 	"github.com/AlexSkr96/Taktgeber/tg-bot/formatting"
 )
 
-func commandAccount() (string, error) {
+const accountHelp = "Shows account overview, including open positions and open orders."
+
+func Account(args []string) (string, error) {
+	if isHelp(args) {
+		return accountHelp, nil
+	}
+
 	accountState := types.AccountState{}
 
 	resp, err := http.Get(accountURL)

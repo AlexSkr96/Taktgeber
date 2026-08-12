@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"encoding/json"
@@ -11,7 +11,25 @@ import (
 	"github.com/AlexSkr96/Taktgeber/tg-bot/formatting"
 )
 
-func commandPrice(coin, since, limit string) (string, error) {
+var priceHelp = "Shows list of recent prices for a given coin.\n" +
+	"Usage: /price {coin} {since} {limit}. {since} and {limit} are optional, 24h and 50 are default values.\n" +
+	"Example: /price BTC 24h 50"
+
+func Price(args []string) (string, error) {
+	if isHelp(args) {
+		return priceHelp, nil
+	}
+
+	coin := args[0]
+	since := "24h"
+	if len(args) > 1 {
+		since = args[1]
+	}
+	limit := "50"
+	if len(args) > 2 {
+		limit = args[2]
+	}
+
 	pricePoints := []types.PricePoint{}
 
 	thisPriceURL := priceURL

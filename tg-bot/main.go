@@ -4,15 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
+	"github.com/AlexSkr96/Taktgeber/tg-bot/commands"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-)
-
-const (
-	algoEngineURL = "http://algo-engine:9000"
-	healthURL     = algoEngineURL + "/health"
-	accountURL    = algoEngineURL + "/account"
-	priceURL      = algoEngineURL + "/price"
 )
 
 func main() {
@@ -43,14 +38,17 @@ func main() {
 		// so we leave it empty.
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 
+		// Extract potential args
+		args := strings.Fields(update.Message.CommandArguments())
+
 		// Extract the command from the Message.
 		switch update.Message.Command() {
 		case "health":
-			msg.Text, err = commandHealth()
+			msg.Text, err = commands.Health(args)
 		case "account":
-			msg.Text, err = commandAccount()
+			msg.Text, err = commands.Account(args)
 		case "price":
-			msg.Text, err = commandPrice("BTC", "1970-01-01 00:00:00", "50")
+			msg.Text, err = commands.Price(args)
 		default:
 			msg.Text = "I don't know that command"
 		}
